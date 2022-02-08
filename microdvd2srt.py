@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
-import re
+import re, codecs
 import argparse
 
 
@@ -34,28 +33,31 @@ def get_time(frame, fps):
 
     return "%02d:%02d:%02d,%03.3d" % (hour, minute, second, milisecond)
 
-
 def get_line(lno, line, fps):
     start, stop, text = LINE.match(line).groups()
     start = get_time(int(start), fps)
     stop = get_time(int(stop), fps)
-
     return TPL % (lno, start, stop, "\n".join(text.split('|')))
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Convert MicroDVD subtitles '
-                                     'to SRT')
-    parser.add_argument('-f', '--fps', help='Frames per second. The '
-                        'destination movie file FPS. Default 25 frames per '
-                        'second.', default=25, type=float)
-    parser.add_argument('filename', help='Subtitle in MicroDVD format.')
-    args = parser.parse_args()
+    parser = argparse.ArgumentParser(
+        description='Convert MicroDVD subtitles '
+        'to SRT')
+    parser.add_argument(
+        '-f', '--fps', dest = 'fps', help='Frames per second. The '
+        'destination movie file FPS. Default 25 frames per '
+        'second.', default=25, type=float)
+    parser.add_argument('-F', '--filename', dest = 'filename', type = str, required = True,
+                        help='Subtitle in MicroDVD format.')
+    parser.add_argument('-e', '--encoding', dest = 'encoding', default = 'utf-8',
+                        help = 'Encoding to use on the MicroDVD file. Default is utf-8.' )
+    args = parser.parse_args( )
+    encoding = args.encoding.strip( )
+    #
+    for index, line in enumerate( open( args.filename, 'rb').readlines( ), 1 ):
+        #print( index, line )
+        print(get_line(index, codecs.decode(line, encoding = encoding), float(args.fps)))
 
-    with open(args.filename) as fob:
-        for index, line in enumerate(fob.readlines(), 1):
-            print(get_line(index, line, float(args.fps)))
-
-
-if __name__ == "__main__":
-    main()
+if __name__=='__main__':
+    main( )
